@@ -19,7 +19,8 @@ function getInfo() {
 
     if (username == "" || password == "")
       window.alert("PLEASE ENTER A VALID USERNAME AND PASSWORD");
-    verifyInfo();
+    else
+      verifyInfo();
 }
 
 function verifyInfo() {
