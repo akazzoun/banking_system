@@ -3,7 +3,7 @@
     "rules": "database.rules.json"
   },
   "hosting": {
-    "public": "build/banking-system",    
+    "public": "build/banking-system",
     "ignore": [
       "firebase.json",
       "**/.*",

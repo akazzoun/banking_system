@@ -19,11 +19,12 @@ function getInfo() {
 
     if (username == "" || password == "")
       window.alert("PLEASE ENTER A VALID USERNAME AND PASSWORD");
-    else
+    else 
       verifyInfo();
 }
 
 function verifyInfo() {
+
   customersRef.once("value", function(snapshot) {
     var userInfo = snapshot.val();
 
@@ -31,6 +32,31 @@ function verifyInfo() {
     if (username != userInfo.username || password != decrypt(userInfo.password))
       window.alert("INCORRECT USERNAME AND/OR PASSWORD")
     else
-      window.location.href = "file:///C:/Users/akazz/Desktop/School/POOSD/Banking_System/welcome.html";
+      window.location.href = "welcome.html";
   });
+}
+
+function changeToCustomerName(id) {
+  customersRef.once("value", function(snapshot) {
+    var userInfo = snapshot.val();
+    document.getElementById(id).innerHTML = "Good day, " + userInfo.name;
+  });
+}
+
+function getSavingsAmount(id) {
+  customersRef.once("value", function(snapshot) {
+    var userInfo = snapshot.val();
+    document.getElementById(id).innerHTML = "" + userInfo.savings_amount;
+  });
+}
+
+function getCheckingAmount(id) {
+  customersRef.once("value", function(snapshot) {
+    var userInfo = snapshot.val();
+    document.getElementById(id).innerHTML = "" + userInfo.checking_amount;
+  });
+}
+
+function sendMoney() {
+
 }
