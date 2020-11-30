@@ -15,7 +15,7 @@ const decrypt = data => {
 
 function encryptPassword(password)
 {
-  console.log(encrypt(password));
+  // console.log(encrypt(password));
 }
 
 function getInfo() {
@@ -36,6 +36,8 @@ function getInfo() {
             customersRef = users[user];
             sessionStorage.setItem("userInfo", JSON.stringify(users[user]));
             sessionStorage.setItem("user", JSON.stringify(user));
+            sessionStorage.setItem("savings_amount", users[user].savings_amount);
+            sessionStorage.setItem("checking_amount", users[user].checking_amount);
             verifyInfo(users[user]);
             break;
           }
@@ -57,13 +59,11 @@ function changeToCustomerName(id) {
 }
 
 function getSavingsAmount(id) {
-  var userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
-  document.getElementById(id).innerHTML = "$" + userInfo.savings_amount;
+  document.getElementById(id).innerHTML = "$" + sessionStorage.getItem("savings_amount");
 }
 
 function getCheckingAmount(id) {
-  var userInfo = JSON.parse(sessionStorage.getItem("userInfo"));
-  document.getElementById(id).innerHTML = "$" + userInfo.checking_amount;
+  document.getElementById(id).innerHTML = "$" + sessionStorage.getItem("checking_amount");
 }
 
 function sendMoney(sendFrom) {
@@ -73,8 +73,8 @@ function sendMoney(sendFrom) {
     var username = document.getElementById("username").value;
     var amount = parseFloat(document.getElementById("amount").value);
     var radios = document.getElementsByName("radiobutton");
-    console.log(username);
-    console.log(amount);
+    // console.log(username);
+    // console.log(amount);
 
     var accountType;
     for (var i = 0, length = radios.length; i < length; i++) {
@@ -91,16 +91,19 @@ function sendMoney(sendFrom) {
     {
       if (users[user].username == username)
       {
-        console.log(accountType.value);
-        if (accountType.value == "savings_amount")
+        // console.log(accountType.value);
+        // Savings
+        if (sendFrom == "savings")
         {
-          var infoFrom = JSON.parse(sessionStorage.getItem("userInfo"));
-          var balanceTo = parseFloat(users[user].savings_amount);
-          var newBalanceTo = balanceTo + amount;
-          if (sendFrom == "savings")
+          var savingsFrom = sessionStorage.getItem("savings_amount");
+          var balanceFrom = parseFloat(savingsFrom);
+          var newBalanceFrom; 
+          // console.log(savingsFrom);
+          // console.log("new");
+          if (accountType.value == "Savings")
           {
-            var balanceFrom = parseFloat(infoFrom.savings_amount);
-            var newBalanceFrom; 
+            var balanceTo = parseFloat(users[user].savings_amount);
+            var newBalanceTo = balanceTo + amount;
             if (amount > balanceFrom)
             {
               window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -109,14 +112,16 @@ function sendMoney(sendFrom) {
             else 
             {
               newBalanceFrom = balanceFrom - amount;
+              sessionStorage.setItem("savings_amount", newBalanceFrom.toString());
+              // console.log(newBalanceFrom);
             }
-            console.log("new");
-            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("savings_amount1").set(newBalanceFrom.toString());
+            firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
+            // console.log("success");
           }
-          else
+          else if (accountType.value == "Checking")
           {
-            var balanceFrom = parseFloat(infoFrom.checking_amount);
-            var newBalanceFrom; 
+            var balanceTo = parseFloat(users[user].checking_amount);
+            var newBalanceTo = balanceTo + amount;
             if (amount > balanceFrom)
             {
               window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -125,20 +130,26 @@ function sendMoney(sendFrom) {
             else 
             {
               newBalanceFrom = balanceFrom - amount;
+              sessionStorage.setItem("savings_amount", newBalanceFrom.toString());
+              // console.log(newBalanceFrom);
             }
-            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
+            firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
+            // console.log("success");
           }
-          firebase.database().ref("/Customers/" + user).child("savings_amount1").set(newBalanceTo.toString());
+          firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("savings_amount").set(newBalanceFrom.toString());
         }
-        else 
+        // Checking
+        else if (sendFrom == "checking")
         {
-          var infoFrom = JSON.parse(sessionStorage.getItem("userInfo"));
-          var balanceTo = parseFloat(users[user].checking_amount);
-          var newBalanceTo = balanceTo + amount;
-          if (sendFrom == "savings")
+          var savingsFrom = sessionStorage.getItem("checking_amount");
+          var balanceFrom = parseFloat(savingsFrom);
+          var newBalanceFrom; 
+          // console.log(savingsFrom);
+          // console.log("new");
+          if (accountType.value == "Savings")
           {
-            var balanceFrom = parseFloat(infoFrom.savings_amount);
-            var newBalanceFrom; 
+            var balanceTo = parseFloat(users[user].savings_amount);
+            var newBalanceTo = balanceTo + amount;
             if (amount > balanceFrom)
             {
               window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -147,13 +158,16 @@ function sendMoney(sendFrom) {
             else 
             {
               newBalanceFrom = balanceFrom - amount;
+              sessionStorage.setItem("checking_amount", newBalanceFrom.toString());
+              // console.log(newBalanceFrom);
             }
-            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
+            firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
+            // console.log("success");
           }
-          else
+          else if (accountType.value == "Checking")
           {
-            var balanceFrom = parseFloat(infoFrom.checking_amount);
-            var newBalanceFrom; 
+            var balanceTo = parseFloat(users[user].checking_amount);
+            var newBalanceTo = balanceTo + amount;
             if (amount > balanceFrom)
             {
               window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -162,11 +176,14 @@ function sendMoney(sendFrom) {
             else 
             {
               newBalanceFrom = balanceFrom - amount;
+              sessionStorage.setItem("checking_amount", newBalanceFrom.toString());
+              // console.log(newBalanceFrom);
             }
-            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
+            firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
+            // console.log("success");
           }
-          firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
-        }    
+          firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
+        }   
       }
     }
   });
