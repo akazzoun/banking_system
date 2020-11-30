@@ -86,7 +86,7 @@ function sendMoney(sendFrom) {
         break;
       }
     }
-    
+
     for (let user in users)
     {
       if (users[user].username == username)
@@ -110,7 +110,8 @@ function sendMoney(sendFrom) {
             {
               newBalanceFrom = balanceFrom - amount;
             }
-            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("savings_amount").set(newBalanceFrom.toString());
+            console.log("new");
+            firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("savings_amount1").set(newBalanceFrom.toString());
           }
           else
           {
@@ -127,7 +128,7 @@ function sendMoney(sendFrom) {
             }
             firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
           }
-          firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
+          firebase.database().ref("/Customers/" + user).child("savings_amount1").set(newBalanceTo.toString());
         }
         else 
         {
