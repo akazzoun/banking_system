@@ -77,7 +77,7 @@ function sendMoney(sendFrom) {
   for (var i = 0, length = radios.length; i < length; i++) {
     if (radios[i].checked) {
       accountType = radios[i];
-      alert(radios[i].value);
+      // alert(radios[i].value);
 
       // only one radio can be logically checked, don't check the rest
       break;
@@ -90,7 +90,8 @@ function sendMoney(sendFrom) {
     {
       if (users[user].username == username)
       {
-        if (accountType == "savings_amount")
+        console.log(accountType.value);
+        if (accountType.value == "savings_amount")
         {
           var infoFrom = JSON.parse(sessionStorage.getItem("userInfo"));
           var balanceTo = parseFloat(users[user].savings_amount);
