@@ -67,25 +67,26 @@ function getCheckingAmount(id) {
 }
 
 function sendMoney(sendFrom) {
-  var username = document.getElementById("username").value;
-  var amount = parseFloat(document.getElementById("amount").value);
-  var radios = document.getElementsByName("radiobutton");
-  console.log(username);
-  console.log(amount);
-
-  var accountType;
-  for (var i = 0, length = radios.length; i < length; i++) {
-    if (radios[i].checked) {
-      accountType = radios[i];
-      // alert(radios[i].value);
-
-      // only one radio can be logically checked, don't check the rest
-      break;
-    }
-  }
 
   usersRef.once("value", function(snapshot) {
     var users = snapshot.val();
+    var username = document.getElementById("username").value;
+    var amount = parseFloat(document.getElementById("amount").value);
+    var radios = document.getElementsByName("radiobutton");
+    console.log(username);
+    console.log(amount);
+
+    var accountType;
+    for (var i = 0, length = radios.length; i < length; i++) {
+      if (radios[i].checked) {
+        accountType = radios[i];
+        // alert(radios[i].value);
+
+        // only one radio can be logically checked, don't check the rest
+        break;
+      }
+    }
+    
     for (let user in users)
     {
       if (users[user].username == username)
