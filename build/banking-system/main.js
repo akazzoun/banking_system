@@ -59,11 +59,31 @@ function changeToCustomerName(id) {
 }
 
 function getSavingsAmount(id) {
-  document.getElementById(id).innerHTML = "$" + sessionStorage.getItem("savings_amount");
+  usersRef.once("value", function(snapshot) {
+    var users = snapshot.val();
+    for (let user in users)
+    {
+      if (JSON.stringify(user) == sessionStorage.getItem("user"))
+      {
+        document.getElementById(id).innerHTML = "$" + users[user].savings_amount;
+        break;
+      }
+    }
+  });
 }
 
 function getCheckingAmount(id) {
-  document.getElementById(id).innerHTML = "$" + sessionStorage.getItem("checking_amount");
+  usersRef.once("value", function(snapshot) {
+    var users = snapshot.val();
+    for (let user in users)
+    {
+      if (JSON.stringify(user) == sessionStorage.getItem("user"))
+      {
+        document.getElementById(id).innerHTML = "$" + users[user].checking_amount;
+        break;
+      }
+    }
+  });
 }
 
 function sendMoney(sendFrom) {
@@ -95,96 +115,61 @@ function sendMoney(sendFrom) {
         // Savings
         if (sendFrom == "savings")
         {
-          var savingsFrom = sessionStorage.getItem("savings_amount");
-          var balanceFrom = parseFloat(savingsFrom);
-          var newBalanceFrom; 
-          // console.log(savingsFrom);
-          // console.log("new");
-          if (accountType.value == "Savings")
-          {
-            var balanceTo = parseFloat(users[user].savings_amount);
-            var newBalanceTo = balanceTo + amount;
-            if (amount > balanceFrom)
-            {
-              window.alert("The amount you want to send is greater than the amount you have in your account");
-              break;
-            }
-            else 
-            {
-              newBalanceFrom = balanceFrom - amount;
-              sessionStorage.setItem("savings_amount", newBalanceFrom.toString());
-              // console.log(newBalanceFrom);
-            }
-            firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
-            // console.log("success");
-          }
-          else if (accountType.value == "Checking")
-          {
-            var balanceTo = parseFloat(users[user].checking_amount);
-            var newBalanceTo = balanceTo + amount;
-            if (amount > balanceFrom)
-            {
-              window.alert("The amount you want to send is greater than the amount you have in your account");
-              break;
-            }
-            else 
-            {
-              newBalanceFrom = balanceFrom - amount;
-              sessionStorage.setItem("savings_amount", newBalanceFrom.toString());
-              // console.log(newBalanceFrom);
-            }
-            firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
-            // console.log("success");
-          }
-          firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("savings_amount").set(newBalanceFrom.toString());
+          sendMoneyHelper(users, user, "savings_amount", amount, accountType);
         }
         // Checking
         else if (sendFrom == "checking")
         {
-          var savingsFrom = sessionStorage.getItem("checking_amount");
-          var balanceFrom = parseFloat(savingsFrom);
-          var newBalanceFrom; 
-          // console.log(savingsFrom);
-          // console.log("new");
-          if (accountType.value == "Savings")
-          {
-            var balanceTo = parseFloat(users[user].savings_amount);
-            var newBalanceTo = balanceTo + amount;
-            if (amount > balanceFrom)
-            {
-              window.alert("The amount you want to send is greater than the amount you have in your account");
-              break;
-            }
-            else 
-            {
-              newBalanceFrom = balanceFrom - amount;
-              sessionStorage.setItem("checking_amount", newBalanceFrom.toString());
-              // console.log(newBalanceFrom);
-            }
-            firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
-            // console.log("success");
-          }
-          else if (accountType.value == "Checking")
-          {
-            var balanceTo = parseFloat(users[user].checking_amount);
-            var newBalanceTo = balanceTo + amount;
-            if (amount > balanceFrom)
-            {
-              window.alert("The amount you want to send is greater than the amount you have in your account");
-              break;
-            }
-            else 
-            {
-              newBalanceFrom = balanceFrom - amount;
-              sessionStorage.setItem("checking_amount", newBalanceFrom.toString());
-              // console.log(newBalanceFrom);
-            }
-            firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
-            // console.log("success");
-          }
-          firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child("checking_amount").set(newBalanceFrom.toString());
+          sendMoneyHelper(users, user, "checking_amount", amount, accountType);
         }   
       }
     }
   });
 }
+
+function sendMoneyHelper(users, user, child, amount, accountType) {
+  var savingsFrom = sessionStorage.getItem(child);
+  var balanceFrom = parseFloat(savingsFrom);
+  var newBalanceFrom; 
+  // console.log(savingsFrom);
+  // console.log("new");
+  if (accountType.value == "Savings")
+  {
+    var balanceTo = parseFloat(users[user].savings_amount);
+    var newBalanceTo = balanceTo + amount;
+    if (amount > balanceFrom)
+    {
+      window.alert("The amount you want to send is greater than the amount you have in your account");
+      return;
+    }
+    else 
+    {
+      newBalanceFrom = balanceFrom - amount;
+      sessionStorage.setItem(child, newBalanceFrom.toString());
+      // console.log(newBalanceFrom);
+    }
+    firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
+    // console.log("success");
+  }
+  else if (accountType.value == "Checking")
+  {
+    var balanceTo = parseFloat(users[user].checking_amount);
+    var newBalanceTo = balanceTo + amount;
+    if (amount > balanceFrom)
+    {
+      window.alert("The amount you want to send is greater than the amount you have in your account");
+      return;
+    }
+    else 
+    {
+      newBalanceFrom = balanceFrom - amount;
+      sessionStorage.setItem(child, newBalanceFrom.toString());
+      // console.log(newBalanceFrom);
+    }
+    firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
+    // console.log("success");
+  }
+  firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child(child).set(newBalanceFrom.toString());
+  window.alert("Money sent! Please return to the front page to see your updated balances")
+}
+
