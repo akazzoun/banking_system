@@ -1,9 +1,9 @@
 // Set the configuration for your app
 // TODO: Replace with your project's config objec
-
 // Get a reference to the database service
 var usersRef = firebase.database().ref("/Customers");
 var customersRef;
+
 
 const encrypt = text => {
   return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(text));
@@ -44,6 +44,30 @@ function getInfo() {
         }
       }  
     });
+}
+
+function checkBalances() {
+  usersRef.once("value", function(snapshot) {
+  var users = snapshot.val();
+  for (let user in users)
+  {
+    console.log(JSON.stringify(users));
+    if (JSON.stringify(user) == sessionStorage.getItem("user"))
+    {
+      if (users[user].savings_amount != sessionStorage.getItem("savings_amount")) {
+        sessionStorage.setItem("savings_amount", users[user].savings_amount);
+        alert("Money added into your savings account");
+        break;
+      }
+
+      if (users[user].checking_amount != sessionStorage.getItem("checking_amount")) {
+        sessionStorage.setItem("checking_amount", users[user].checking_amount);
+        alert("Money added into your checking account");
+        break;
+      }
+    }
+  }
+  });
 }
 
 function verifyInfo(user) {
@@ -94,17 +118,28 @@ function sendMoney(sendFrom) {
     var amount = parseFloat(document.getElementById("amount").value);
     var radios = document.getElementsByName("radiobutton");
     // console.log(username);
-    // console.log(amount);
+    //console.log(amount);
+    if (amount == NaN) {
+      alert("Please put the amount of money you would like to send");
+      return
+    }
+    
+    if (username == "") {
+      alert("Please put the username of the person you would like to send money to");
+      return
+    }
 
-    var accountType;
+    var accountType = -1;
     for (var i = 0, length = radios.length; i < length; i++) {
       if (radios[i].checked) {
         accountType = radios[i];
-        // alert(radios[i].value);
-
         // only one radio can be logically checked, don't check the rest
         break;
       }
+    }
+    if (accountType == -1) {
+      alert("Please select the type of account you would like to send money to");
+      return;
     }
 
     for (let user in users)
@@ -155,6 +190,7 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
   {
     var balanceTo = parseFloat(users[user].checking_amount);
     var newBalanceTo = balanceTo + amount;
+    
     if (amount > balanceFrom)
     {
       window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -170,6 +206,7 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
     // console.log("success");
   }
   firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child(child).set(newBalanceFrom.toString());
-  window.alert("Money sent! Please return to the front page to see your updated balances")
+  window.alert("Money sent! Please return to the front page to see your updated balances");
+  location.reload();
 }
 

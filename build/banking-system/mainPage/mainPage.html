@@ -28,7 +28,7 @@
     <link rel="canonical" href="mainPage.html">
     <meta property="og:url" content="mainPage.html">
   </head>
-  <body data-home-page="mainPage.html" data-home-page-title="Front Page" class="u-body"><header class="u-clearfix u-header u-header" id="sec-e858"><div class="u-clearfix u-sheet u-sheet-1">
+  <body onload="checkBalances()" data-home-page="mainPage.html" data-home-page-title="Front Page" class="u-body"><header class="u-clearfix u-header u-header" id="sec-e858"><div class="u-clearfix u-sheet u-sheet-1">
     <!-- Insert these scripts at the bottom of the HTML, but before you use any Firebase services -->
 
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
@@ -48,6 +48,8 @@
     };
     firebase.initializeApp(config);
     </script>
+
+    <script> src="../../..functions/index.js"</script>
 
     <script src="../main.js"></script>
     
