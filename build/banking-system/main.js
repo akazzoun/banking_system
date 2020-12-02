@@ -121,6 +121,10 @@ function createTransaction(username, transactionType, name, amount, date) {
   });
 }
 
+function logout() {
+  sessionStorage.clear();
+}
+
 function transactionPage() {
   var table = document.getElementById("table");
   for (var i = 9, row; row = table.rows[i]; i--)
