@@ -38,6 +38,8 @@ function getInfo() {
             sessionStorage.setItem("user", JSON.stringify(user));
             sessionStorage.setItem("savings_amount", users[user].savings_amount);
             sessionStorage.setItem("checking_amount", users[user].checking_amount);
+            sessionStorage.setItem("username", users[user].username)
+            sessionStorage.setItem("name", users[user].name)
             verifyInfo(users[user]);
             break;
           }
@@ -46,27 +48,110 @@ function getInfo() {
     });
 }
 
-function checkBalances() {
-  usersRef.once("value", function(snapshot) {
-  var users = snapshot.val();
-  for (let user in users)
-  {
-    console.log(JSON.stringify(users));
-    if (JSON.stringify(user) == sessionStorage.getItem("user"))
-    {
-      if (users[user].savings_amount != sessionStorage.getItem("savings_amount")) {
-        sessionStorage.setItem("savings_amount", users[user].savings_amount);
-        alert("Money added into your savings account");
-        break;
-      }
+function getDate() {
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, '0');
+  var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  var yyyy = today.getFullYear();
+  var hour = String(today.getHours()).padStart(2, '0');
+  var mins = String(today.getMinutes()).padStart(2, '0')
+  
+  today = mm + '/' + dd + '/' + yyyy + "  " + hour + ':' + mins;
+  return today;
+}
 
-      if (users[user].checking_amount != sessionStorage.getItem("checking_amount")) {
-        sessionStorage.setItem("checking_amount", users[user].checking_amount);
-        alert("Money added into your checking account");
-        break;
+function fillTransactionTable() {
+  usersRef.once("value", function(snapshot) {
+    var table = document.getElementById("table");
+    var users = snapshot.val();
+    for (let user in users)
+    {
+      // console.log(JSON.stringify(users));
+      if (JSON.stringify(user) == sessionStorage.getItem("user"))
+      {
+        var transactions = users[user].transactions;
+        var transactionsLength = Object.keys(transactions).length;
+        //var counter = 0;
+        var start = transactionsLength;
+        console.log(transactionsLength)
+
+        for (let transaction in transactions)
+        {
+          if (start > 10) {
+            start--;
+            continue;
+          }
+          var row = table.rows[start];
+          start--;
+
+          row.cells[0].innerHTML = transactions[transaction].transactionID;
+          row.cells[1].innerHTML = transactions[transaction].transaction_type;
+          row.cells[2].innerHTML = transactions[transaction].name;
+          row.cells[3].innerHTML = "$" + transactions[transaction].amount;
+          row.cells[4].innerHTML = transactions[transaction].date;
+
+        }
       }
     }
+  });
+}
+
+function createTransaction(username, transactionType, name, amount, date) {
+  usersRef.once("value", function(snapshot) {
+    var users = snapshot.val();
+    for (let user in users)
+    {
+      // console.log(JSON.stringify(users)); 
+      if (users[user].username == username)
+      {
+        var transactions = users[user].transactions;
+        var transactionsLength = Object.keys(transactions).length;
+        var transactionID = (transactionsLength + 1).toString();
+        
+        console.log(JSON.stringify(user));
+        firebase.database().ref("/Customers/" + JSON.parse(JSON.stringify(user)) + "/transactions").push().set({
+          amount: amount,
+          date: date,
+          name: name,
+          transactionID: transactionID,
+          transaction_type: transactionType
+        });
+      }
+    }
+  });
+}
+
+function transactionPage() {
+  var table = document.getElementById("table");
+  for (var i = 9, row; row = table.rows[i]; i--)
+  {
+      console.log(row.cells[0].innerHTML);
+      //iterate through columns
+      //columns would be accessed using the "col" variable assigned in the for loop 
   }
+}
+
+function checkBalances() {
+  usersRef.once("value", function(snapshot) {
+    var users = snapshot.val();
+    for (let user in users)
+    {
+      // console.log(JSON.stringify(users));
+      if (JSON.stringify(user) == sessionStorage.getItem("user"))
+      {
+        if (users[user].savings_amount > sessionStorage.getItem("savings_amount")) {
+          sessionStorage.setItem("savings_amount", users[user].savings_amount);
+          alert("Money was added into your savings account");
+          break;
+        }
+
+        if (users[user].checking_amount > sessionStorage.getItem("checking_amount")) {
+          sessionStorage.setItem("checking_amount", users[user].checking_amount);
+          alert("Money was added into your checking account");
+          break;
+        }
+      }
+    }
   });
 }
 
@@ -74,7 +159,7 @@ function verifyInfo(user) {
   if (username != user.username || password != decrypt(user.password))
     window.alert("INCORRECT USERNAME AND/OR PASSWORD")
   else
-    window.location.href = "welcome.html";
+    window.location.href = "mainPage/mainPage.html";
 }
 
 function changeToCustomerName(id) {
@@ -123,10 +208,16 @@ function sendMoney(sendFrom) {
       alert("Please put the amount of money you would like to send");
       return
     }
+
     
     if (username == "") {
       alert("Please put the username of the person you would like to send money to");
       return
+    }
+    
+    if (username == sessionStorage.getItem("username")) {
+      alert("Please do not put your username. Input another registered username");
+      return;
     }
 
     var accountType = -1;
@@ -172,6 +263,7 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
   {
     var balanceTo = parseFloat(users[user].savings_amount);
     var newBalanceTo = balanceTo + amount;
+    newBalanceTo = newBalanceTo.toFixed(2);
     if (amount > balanceFrom)
     {
       window.alert("The amount you want to send is greater than the amount you have in your account");
@@ -180,10 +272,12 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
     else 
     {
       newBalanceFrom = balanceFrom - amount;
+      newBalanceFrom = newBalanceFrom.toFixed(2);
       sessionStorage.setItem(child, newBalanceFrom.toString());
       // console.log(newBalanceFrom);
     }
     firebase.database().ref("/Customers/" + user).child("savings_amount").set(newBalanceTo.toString());
+    createTransaction(sessionStorage.getItem("username"), "Sent", users[user].name, amount.toFixed(2), getDate());
     // console.log("success");
   }
   else if (accountType.value == "Checking")
@@ -199,14 +293,17 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
     else 
     {
       newBalanceFrom = balanceFrom - amount;
+      newBalanceFrom = newBalanceFrom.toFixed(2);
       sessionStorage.setItem(child, newBalanceFrom.toString());
       // console.log(newBalanceFrom);
     }
     firebase.database().ref("/Customers/" + user).child("checking_amount").set(newBalanceTo.toString());
+    createTransaction(sessionStorage.getItem("username"), "Sent", users[user].name, amount.toFixed(2), getDate());
     // console.log("success");
   }
   firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child(child).set(newBalanceFrom.toString());
   window.alert("Money sent! Please return to the front page to see your updated balances");
-  location.reload();
+  // location.reload();
+  createTransaction(users[user].username, "Received", sessionStorage.getItem("name"), amount.toFixed(2), getDate());
 }
 
