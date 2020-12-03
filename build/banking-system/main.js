@@ -21,6 +21,7 @@ function encryptPassword(password)
 function getInfo() {
     username = document.getElementById("username").value;
     password = document.getElementById("password").value;
+    var exists = false;
 
     usersRef.once("value", function(snapshot) {
       var users = snapshot.val();
@@ -33,6 +34,7 @@ function getInfo() {
         {
           if (users[user].username == username)
           {
+            exists = true;
             customersRef = users[user];
             sessionStorage.setItem("userInfo", JSON.stringify(users[user]));
             sessionStorage.setItem("user", JSON.stringify(user));
@@ -44,7 +46,9 @@ function getInfo() {
             break;
           }
         }
-      }  
+      }
+      if (!exists)
+        alert("There is no valid user with that username");
     });
 }
 
@@ -108,7 +112,7 @@ function createTransaction(username, transactionType, name, amount, date) {
         var transactionsLength = Object.keys(transactions).length;
         var transactionID = (transactionsLength + 1).toString();
         
-        console.log(JSON.stringify(user));
+        // console.log(JSON.stringify(user));
         firebase.database().ref("/Customers/" + JSON.parse(JSON.stringify(user)) + "/transactions").push().set({
           amount: amount,
           date: date,
@@ -205,18 +209,19 @@ function sendMoney(sendFrom) {
     var users = snapshot.val();
     var username = document.getElementById("username").value;
     var amount = parseFloat(document.getElementById("amount").value);
+    console.log(amount);
     var radios = document.getElementsByName("radiobutton");
     // console.log(username);
     //console.log(amount);
-    if (amount == NaN) {
-      alert("Please put the amount of money you would like to send");
-      return
+    if (Number.isNaN(amount)) {
+      alert("Invalid input. Please put the amount of money you would like to send");
+      return;
     }
 
     
     if (username == "") {
       alert("Please put the username of the person you would like to send money to");
-      return
+      return;
     }
     
     if (username == sessionStorage.getItem("username")) {
@@ -237,10 +242,12 @@ function sendMoney(sendFrom) {
       return;
     }
 
+    var exists = false;
     for (let user in users)
     {
       if (users[user].username == username)
       {
+        exists = true;
         // console.log(accountType.value);
         // Savings
         if (sendFrom == "savings")
@@ -254,6 +261,11 @@ function sendMoney(sendFrom) {
         }   
       }
     }
+    console.log(exists)
+    if (!exists)
+      alert("This username does not exist. Please put in a valid username");
+      
+    location.reload();
   });
 }
 
@@ -307,7 +319,6 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
   }
   firebase.database().ref("/Customers/" + JSON.parse(sessionStorage.getItem("user"))).child(child).set(newBalanceFrom.toString());
   window.alert("Money sent! Please return to the front page to see your updated balances");
-  // location.reload();
   createTransaction(users[user].username, "Received", sessionStorage.getItem("name"), amount.toFixed(2), getDate());
 }
 
