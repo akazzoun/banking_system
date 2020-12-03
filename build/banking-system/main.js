@@ -300,7 +300,7 @@ function sendMoneyHelper(users, user, child, amount, accountType) {
   {
     var balanceTo = parseFloat(users[user].checking_amount);
     var newBalanceTo = balanceTo + amount;
-    
+    newBalanceTo = newBalanceTo.toFixed(2);
     if (amount > balanceFrom)
     {
       window.alert("The amount you want to send is greater than the amount you have in your account");
